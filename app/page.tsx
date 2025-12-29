@@ -9,6 +9,7 @@ import StarterKit from "@tiptap/starter-kit";
 import Typography from "@tiptap/extension-typography";
 import Highlight from "@tiptap/extension-highlight";
 import TextAlign from "@tiptap/extension-text-align";
+import { Markdown } from "@tiptap/markdown";
 import { useEditor } from "@tiptap/react";
 
 export default function Home() {
@@ -20,6 +21,7 @@ export default function Home() {
       StarterKit,
       Highlight,
       Typography,
+      Markdown,
       TextAlign.configure({
         types: ["heading", "paragraph"],
       }),
@@ -38,14 +40,15 @@ export default function Home() {
   };
 
   async function salvar() {
-    console.log("data", editor?.getHTML());
-    return;
+    const contentMd = editor?.getMarkdown();
+
+    if (!fileName) return;
 
     await fetch("/api/save-md", {
       method: "POST",
       body: JSON.stringify({
         path: `docs/${fileName}.md`,
-        content: editor?.getText(),
+        content: contentMd,
       }),
     });
   }
