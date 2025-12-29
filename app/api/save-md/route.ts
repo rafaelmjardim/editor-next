@@ -3,19 +3,15 @@ import { NextResponse } from "next/server";
 const GITHUB_API = "https://api.github.com";
 
 export async function POST(req: Request) {
-  const { path, fileName, content } = await req.json();
+  const { path, content } = await req.json();
 
-  if (!content) return;
+  if (!path || !content) return;
 
   const owner = process.env.GITHUB_OWNER;
   const repo = process.env.GITHUB_REPO;
   const token = process.env.GITHUB_TOKEN;
 
-  debugger;
-
   const apiUrl = `${GITHUB_API}/repos/${owner}/${repo}/contents/${path}`;
-
-  // const filePath = path.join(process.cwd(), "content/docs", `${fileName}.md`);
 
   const fileResponse = await fetch(apiUrl, {
     headers: {

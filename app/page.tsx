@@ -1,18 +1,23 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { useState } from "react";
+import { ChangeEvent, useState } from "react";
 
 export default function Home() {
   const [text, setText] = useState("");
+  const [fileName, setFileName] = useState("");
+
+  const handleChangeName = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setFileName(event.target.value);
+  };
 
   async function salvar() {
     await fetch("/api/save-md", {
       method: "POST",
       body: JSON.stringify({
-        fileName: "nome_arquivo",
-        path: "docs/intro.md",
+        path: `docs/${fileName}.md`,
         content: text,
       }),
     });
@@ -20,6 +25,12 @@ export default function Home() {
 
   return (
     <main className="container my-auto p-20 flex flex-col items-center gap-4 min-w-full">
+      <Input
+        placeholder="Nome do arquivo"
+        id="name"
+        value={fileName}
+        onChange={handleChangeName}
+      />
       <Textarea
         className="h-96"
         placeholder="Adicione sua mensagem aqui"
