@@ -16,3 +16,11 @@ Esta documentação tem como objetivo **centralizar e organizar todas as informa
 ### **Contribuindo com a Documentação**
 
 A **documentação da Agger** é um recurso vivo e colaborativo, e pode ser alimentada e atualizada por desenvolvedores ou funcionários da empresa. Nosso objetivo é garantir que todas as informações estejam sempre atualizadas e que todos os membros da equipe tenham a oportunidade de contribuir com suas experiências e conhecimentos..
+
+
+
+```
+const markdown = editor.storage.markdown.getMarkdown()
+console.log(markdown)
+```
+
