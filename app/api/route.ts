@@ -1,3 +1,5 @@
 export async function GET(request: Request) {
-  return Response.json({message: 'teste'})
+  const tokenTeste = process.env.GITHUB_OWNER!;
+
+  return Response.json({ message: "teste", token: tokenTeste });
 }

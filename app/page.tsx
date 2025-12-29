@@ -12,6 +12,7 @@ export default function Home() {
       method: "POST",
       body: JSON.stringify({
         fileName: "nome_arquivo",
+        path: "docs/intro.md",
         content: text,
       }),
     });
