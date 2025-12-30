@@ -11,8 +11,11 @@ import { Markdown } from "@tiptap/markdown";
 import { useEditor } from "@tiptap/react";
 import { MyEditor } from "../_components/myEditor";
 import { useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 export default function EditorClient() {
+  const router = useRouter();
+
   const searchParams = useSearchParams();
   const path = searchParams.get("path");
 
@@ -72,6 +75,12 @@ export default function EditorClient() {
     });
   }
 
+  function handleCancel() {
+    setFileName("");
+    editor?.commands.clearContent();
+    router.push("/editor");
+  }
+
   useEffect(() => {
     loadDocToEdit();
   }, [editor, path]);
@@ -97,7 +106,10 @@ export default function EditorClient() {
         </div>
 
         <div className="flex items-center justify-end gap-2 ">
-          <Button className="bg-transparent text-black border border-black hover:bg-gray-200 cursor-pointer">
+          <Button
+            className="bg-transparent text-black border border-black hover:bg-gray-200 cursor-pointer"
+            onClick={handleCancel}
+          >
             Cancelar
           </Button>
           <Button className="cursor-pointer" onClick={salvar}>
