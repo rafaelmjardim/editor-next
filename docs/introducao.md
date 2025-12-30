@@ -1,4 +1,4 @@
-# **Introdução**
+# **Introdução3**
 
 Bem-vindo à página de **documentação oficial** dos projetos da Agger. Aqui você encontrará informações detalhadas sobre todos os produtos e serviços que desenvolvemos, com uma abordagem focada em atender tanto as necessidades técnicas dos desenvolvedores quanto as instruções de uso para a equipe de suporte e usuários finais.
 
@@ -16,8 +16,6 @@ Esta documentação tem como objetivo **centralizar e organizar todas as informa
 ### **Contribuindo com a Documentação**
 
 A **documentação da Agger** é um recurso vivo e colaborativo, e pode ser alimentada e atualizada por desenvolvedores ou funcionários da empresa. Nosso objetivo é garantir que todas as informações estejam sempre atualizadas e que todos os membros da equipe tenham a oportunidade de contribuir com suas experiências e conhecimentos..
-
-
 
 ```
 const markdown = editor.storage.markdown.getMarkdown()
