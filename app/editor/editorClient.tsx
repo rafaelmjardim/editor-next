@@ -12,6 +12,7 @@ import { useEditor } from "@tiptap/react";
 import { MyEditor } from "../_components/myEditor";
 import { useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
+import { ImSpinner8 } from "react-icons/im";
 
 export default function EditorClient() {
   const router = useRouter();
@@ -20,6 +21,7 @@ export default function EditorClient() {
   const path = searchParams.get("path");
 
   const [fileName, setFileName] = useState("");
+  const [loader, setLoader] = useState(false);
 
   const editor = useEditor({
     extensions: [
@@ -64,15 +66,28 @@ export default function EditorClient() {
   async function salvar() {
     const contentMd = editor?.getMarkdown();
 
-    if (!fileName) return;
+    const fileType = fileName.split(".")[1];
+    const allowedFileTypes = ["md", "mdx"];
 
-    await fetch("/api/save-md", {
-      method: "POST",
-      body: JSON.stringify({
-        path: `docs/${fileName}`,
-        content: contentMd,
-      }),
-    });
+    const hasValidFileName = allowedFileTypes.includes(fileType);
+
+    if (!fileName && hasValidFileName) return;
+
+    setLoader(true);
+
+    try {
+      await fetch("/api/save-md", {
+        method: "POST",
+        body: JSON.stringify({
+          path: `docs/${fileName}`,
+          content: contentMd,
+        }),
+      });
+    } catch (error) {
+      console.log("Erro ao salvar");
+    } finally {
+      setLoader(false);
+    }
   }
 
   function handleCancel() {
@@ -114,6 +129,7 @@ export default function EditorClient() {
           </Button>
           <Button className="cursor-pointer" onClick={salvar}>
             Salvar
+            {loader && <ImSpinner8 className="size-4 animate-spin" />}
           </Button>
         </div>
       </div>
