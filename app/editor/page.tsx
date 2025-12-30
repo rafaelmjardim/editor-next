@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import StarterKit from "@tiptap/starter-kit";
 import Typography from "@tiptap/extension-typography";
 import Highlight from "@tiptap/extension-highlight";
+import TextAlign from "@tiptap/extension-text-align";
 import { Markdown } from "@tiptap/markdown";
 import { useEditor } from "@tiptap/react";
 import { MyEditor } from "../_components/myEditor";
@@ -18,7 +19,15 @@ export default function Editor() {
   const [fileName, setFileName] = useState("");
 
   const editor = useEditor({
-    extensions: [StarterKit, Highlight, Typography, Markdown],
+    extensions: [
+      StarterKit,
+      Highlight,
+      Typography,
+      Markdown,
+      TextAlign.configure({
+        types: ["heading", "paragraph"],
+      }),
+    ],
     immediatelyRender: false,
     editorProps: {
       attributes: {
