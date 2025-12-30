@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { MyEditor } from "./_components/myEditor";
 import StarterKit from "@tiptap/starter-kit";
 import Typography from "@tiptap/extension-typography";
@@ -13,19 +13,18 @@ import { Markdown } from "@tiptap/markdown";
 import { useEditor } from "@tiptap/react";
 
 export default function Home() {
+  const markdown = `# Título
+
+Texto em **negrito** e _itálico_
+
+- Item 1
+- Item 2
+`;
   const [fileName, setFileName] = useState("");
-  const [content, setContent] = useState<string>("");
+  const [content, setContent] = useState<string>("# Titulo");
 
   const editor = useEditor({
-    extensions: [
-      StarterKit,
-      Highlight,
-      Typography,
-      Markdown,
-      TextAlign.configure({
-        types: ["heading", "paragraph"],
-      }),
-    ],
+    extensions: [StarterKit, Highlight, Typography, Markdown],
     content,
     immediatelyRender: false,
     editorProps: {
@@ -38,6 +37,16 @@ export default function Home() {
   const handleChangeName = (event: React.ChangeEvent<HTMLInputElement>) => {
     setFileName(event.target.value);
   };
+
+  const parseMarkdown = () => {
+    if (!editor || !editor.markdown) return;
+
+    editor.commands.setContent(content, { contentType: "markdown" });
+  };
+
+  useEffect(() => {
+    parseMarkdown();
+  }, [editor]);
 
   async function salvar() {
     const contentMd = editor?.getMarkdown();
