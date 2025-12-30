@@ -79,16 +79,27 @@ export default function EditorClient() {
   // console.log("param", params.path);
 
   return (
-    <main className="container my-auto p-20 flex flex-col items-center gap-4 min-w-full h-screen">
-      <Input
-        placeholder="Caminho + nome do arquivo"
-        id="name"
-        value={fileName}
-        onChange={handleChangeName}
-      />
+    <main className="container mx-auto p-6 flex flex-col items-center gap-4 min-w-full h-screen">
+      <div className="flex items-center gap-4 w-full">
+        <Input
+          className="min-h-10"
+          placeholder="Caminho + nome do arquivo"
+          id="name"
+          value={fileName}
+          onChange={handleChangeName}
+        />
+
+        <div className="flex items-center gap-2">
+          <Button className="bg-transparent text-black border border-black hover:bg-gray-200 cursor-pointer">
+            Cancelar
+          </Button>
+          <Button className="cursor-pointer" onClick={salvar}>
+            Salvar
+          </Button>
+        </div>
+      </div>
 
       <div className="w-full">{editor && <MyEditor editor={editor} />}</div>
-      <Button onClick={salvar}>Salvar</Button>
     </main>
   );
 }
