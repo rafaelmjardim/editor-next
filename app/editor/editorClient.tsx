@@ -52,7 +52,7 @@ export default function EditorClient() {
 
     const data = await res.json();
 
-    const pathName = data.path.split("docs/")[1].split(".")[0];
+    const pathName = data.path.split("docs/")[1];
     setFileName(pathName);
 
     editor?.commands.setContent(data.content, { contentType: "markdown" });
@@ -66,7 +66,7 @@ export default function EditorClient() {
     await fetch("/api/save-md", {
       method: "POST",
       body: JSON.stringify({
-        path: `docs/${fileName}.md`,
+        path: `docs/${fileName}`,
         content: contentMd,
       }),
     });
@@ -76,20 +76,27 @@ export default function EditorClient() {
     loadDocToEdit();
   }, [editor, path]);
 
-  // console.log("param", params.path);
-
   return (
     <main className="container mx-auto p-6 flex flex-col items-center gap-4 min-w-full h-screen">
-      <div className="flex items-center gap-4 w-full">
-        <Input
-          className="min-h-10"
-          placeholder="Caminho + nome do arquivo"
-          id="name"
-          value={fileName}
-          onChange={handleChangeName}
-        />
+      <div className="flex justify-between items-center w-full">
+        <div className="flex items-center gap-2 ">
+          <span className="text-nowrap font-semibold text-blue-500">
+            agger-docs
+          </span>
+          <span className="text-nowrap font-semibold text-gray-400">/</span>
+          <span className="text-nowrap font-semibold text-blue-500">docs</span>
+          <span className="text-nowrap font-semibold text-gray-400">/</span>
 
-        <div className="flex items-center gap-2">
+          <Input
+            className="min-h-6"
+            placeholder="Caminho + nome do arquivo"
+            id="name"
+            value={fileName}
+            onChange={handleChangeName}
+          />
+        </div>
+
+        <div className="flex items-center justify-end gap-2 ">
           <Button className="bg-transparent text-black border border-black hover:bg-gray-200 cursor-pointer">
             Cancelar
           </Button>
