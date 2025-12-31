@@ -66,15 +66,17 @@ export default function EditorClient() {
   async function salvar() {
     const contentMd = editor?.getMarkdown();
 
-    const fileType = fileName.split(".")[1];
+    const fileType = fileName.split(".").pop()?.toLowerCase();
     const allowedFileTypes = ["md", "mdx"];
 
-    const hasValidFileName = allowedFileTypes.includes(fileType);
+    const hasValidFileName = !!fileType && allowedFileTypes.includes(fileType);
 
-    if (!fileName && hasValidFileName) return;
+    if (!fileName || !hasValidFileName) return;
+    console.log("rodou", fileType);
 
     setLoader(true);
 
+    return;
     try {
       await fetch("/api/save-md", {
         method: "POST",
