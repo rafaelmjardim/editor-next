@@ -72,11 +72,9 @@ export default function EditorClient() {
     const hasValidFileName = !!fileType && allowedFileTypes.includes(fileType);
 
     if (!fileName || !hasValidFileName) return;
-    console.log("rodou", fileType);
 
     setLoader(true);
 
-    return;
     try {
       await fetch("/api/save-md", {
         method: "POST",
