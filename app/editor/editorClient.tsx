@@ -13,6 +13,7 @@ import { MyEditor } from "../_components/myEditor";
 import { useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
 import { ImSpinner8 } from "react-icons/im";
+import matter from "gray-matter";
 
 export default function EditorClient() {
   const router = useRouter();
@@ -21,6 +22,10 @@ export default function EditorClient() {
   const path = searchParams.get("path");
 
   const [fileName, setFileName] = useState("");
+  const [parsedData, setParsedData] = useState<{
+    frontmatter: object;
+    content: string;
+  }>({ content: "", frontmatter: {} });
   const [loader, setLoader] = useState(false);
 
   const editor = useEditor({
@@ -45,6 +50,19 @@ export default function EditorClient() {
     setFileName(event.target.value);
   };
 
+  const parseMarkdown = (md: string) => {
+    const { data, content } = matter(md);
+
+    return {
+      frontmatter: data,
+      content,
+    };
+  };
+
+  const buildMarkdown = (frontmatter: object, content: string) => {
+    return matter.stringify(content, frontmatter);
+  };
+
   async function loadDocToEdit() {
     if (!path) return;
 
@@ -60,10 +78,16 @@ export default function EditorClient() {
     const pathName = data.path.split("docs/")[1];
     setFileName(pathName);
 
-    editor?.commands.setContent(data.content, { contentType: "markdown" });
+    setParsedData(parseMarkdown(data.content));
+
+    const { content } = parseMarkdown(data.content);
+
+    editor?.commands.setContent(content, {
+      contentType: "markdown",
+    });
   }
 
-  async function salvar() {
+  async function handleSave() {
     const contentMd = editor?.getMarkdown();
 
     const fileType = fileName.split(".").pop()?.toLowerCase();
@@ -71,7 +95,7 @@ export default function EditorClient() {
 
     const hasValidFileName = !!fileType && allowedFileTypes.includes(fileType);
 
-    if (!fileName || !hasValidFileName) return;
+    if (!fileName || !hasValidFileName || !contentMd) return;
 
     setLoader(true);
 
@@ -80,11 +104,11 @@ export default function EditorClient() {
         method: "POST",
         body: JSON.stringify({
           path: `docs/${fileName}`,
-          content: contentMd,
+          content: buildMarkdown(parsedData.frontmatter, contentMd),
         }),
       });
     } catch (error) {
-      console.log("Erro ao salvar");
+      console.log("Erro ao salvar: ", error);
     } finally {
       setLoader(false);
     }
@@ -127,7 +151,7 @@ export default function EditorClient() {
           >
             Cancelar
           </Button>
-          <Button className="cursor-pointer" onClick={salvar}>
+          <Button className="cursor-pointer" onClick={handleSave}>
             Salvar
             {loader && <ImSpinner8 className="size-4 animate-spin" />}
           </Button>
