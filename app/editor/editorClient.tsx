@@ -23,9 +23,9 @@ export default function EditorClient() {
 
   const [fileName, setFileName] = useState("");
   const [parsedData, setParsedData] = useState<{
-    frontmatter: object;
+    frontmatter?: unknown;
     content: string;
-  }>({ content: "", frontmatter: {} });
+  }>({ content: "" });
   const [loader, setLoader] = useState(false);
 
   const editor = useEditor({
@@ -59,8 +59,8 @@ export default function EditorClient() {
     };
   };
 
-  const buildMarkdown = (frontmatter: object, content: string) => {
-    return matter.stringify(content, frontmatter);
+  const buildMarkdown = (content: string, frontmatter: unknown) => {
+    return matter.stringify(content, frontmatter ?? {});
   };
 
   async function loadDocToEdit() {
@@ -80,7 +80,7 @@ export default function EditorClient() {
 
     setParsedData(parseMarkdown(data.content));
 
-    const { content } = parseMarkdown(data.content);
+    const { content, frontmatter } = parseMarkdown(data.content);
 
     editor?.commands.setContent(content, {
       contentType: "markdown",
@@ -104,7 +104,7 @@ export default function EditorClient() {
         method: "POST",
         body: JSON.stringify({
           path: `docs/${fileName}`,
-          content: buildMarkdown(parsedData.frontmatter, contentMd),
+          content: buildMarkdown(contentMd, parsedData?.frontmatter),
         }),
       });
     } catch (error) {
