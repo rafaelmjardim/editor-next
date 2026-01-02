@@ -1,8 +1,7 @@
 ---
 sidebar_position: 1
 ---
-
-# Introdução
+# Introdução3
 
 Bem-vindo à página de **documentação oficial** dos projetos da Agger. Aqui você encontrará informações detalhadas sobre todos os produtos e serviços que desenvolvemos, com uma abordagem focada em atender tanto as necessidades técnicas dos desenvolvedores quanto as instruções de uso para a equipe de suporte e usuários finais.
 
@@ -11,10 +10,8 @@ Esta documentação tem como objetivo **centralizar e organizar todas as informa
 ### O que você encontrará aqui
 
 - **Documentação Técnica**:
-
   - Estrutura/Arquitetura de projetos, guias de instalação, configuração de ambientes e melhores práticas para desenvolvedores trabalharem com nossos sistemas.
   - Exemplos de código, fluxos de dados e integração de sistemas para garantir que desenvolvedores possam criar, manter e expandir os produtos de forma eficiente.
-
 - **Documentação de Uso**:
   - Tutoriais passo a passo para configuração e uso dos sistemas pela equipe de suporte e usuários finais.
   - Informações sobre solução de problemas comuns e guias visuais para facilitar a compreensão dos recursos disponíveis.
