@@ -69,7 +69,7 @@ export default function EditorClient() {
     const res = await fetch("/api/load-md", {
       method: "POST",
       body: JSON.stringify({
-        path: `${path}.md`,
+        path: `${path}`,
       }),
     });
 
