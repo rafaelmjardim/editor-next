@@ -20,8 +20,12 @@ export async function POST(req: Request) {
 
   if (!response.ok) {
     return NextResponse.json(
-      { error: "Arquivo não encontrado" },
-      { status: 404 }
+      {
+        error: {
+          message: `O Agger Hub não contém o caminho ${path}`,
+        },
+      },
+      { status: 404 },
     );
   }
 

@@ -14,12 +14,15 @@ import { useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
 import { ImSpinner8 } from "react-icons/im";
 import matter from "gray-matter";
+import { ErrorPage } from "../_components/errorPage";
 
 export default function EditorClient() {
   const router = useRouter();
 
   const searchParams = useSearchParams();
   const path = searchParams.get("path");
+
+  const [errorPage, setErrorPage] = useState(false);
 
   const [fileName, setFileName] = useState("");
   const [parsedData, setParsedData] = useState<{
@@ -66,25 +69,39 @@ export default function EditorClient() {
   async function loadDocToEdit() {
     if (!path) return;
 
-    const res = await fetch("/api/load-md", {
-      method: "POST",
-      body: JSON.stringify({
-        path: `${path}`,
-      }),
-    });
+    try {
+      const res = await fetch("/api/load-md", {
+        method: "POST",
+        body: JSON.stringify({
+          path: `${path}`,
+        }),
+      });
 
-    const data = await res.json();
+      setFileName(setPathName(path));
 
-    const pathName = data.path.split("docs/")[1];
-    setFileName(pathName);
+      if (!res.ok) {
+        const erroData = await res.json();
+        throw new Error(
+          erroData.error.message || "Erro ao carregar documentação.",
+        );
+      }
 
-    setParsedData(parseMarkdown(data.content));
+      const data = await res.json();
 
-    const { content } = parseMarkdown(data.content);
+      setParsedData(parseMarkdown(data.content));
 
-    editor?.commands.setContent(content, {
-      contentType: "markdown",
-    });
+      const { content } = parseMarkdown(data.content);
+
+      editor?.commands.setContent(content, {
+        contentType: "markdown",
+      });
+    } catch (error: any) {
+      setErrorPage(true);
+    }
+  }
+
+  function setPathName(path: string): string {
+    return path.split("docs/")[1];
   }
 
   async function handleSave() {
@@ -158,7 +175,19 @@ export default function EditorClient() {
         </div>
       </div>
 
-      <div className="w-full">{editor && <MyEditor editor={editor} />}</div>
+      {loader}
+
+      {!errorPage ? (
+        <div className="w-full">{editor && <MyEditor editor={editor} />}</div>
+      ) : (
+        <ErrorPage
+          message={path ?? ""}
+          onGoToHome={() => {
+            router.push("/editor");
+            setErrorPage(false);
+          }}
+        />
+      )}
     </main>
   );
 }
