@@ -138,14 +138,15 @@ export default function EditorClient() {
 
   async function handleSave() {
     const contentMd = editor?.getMarkdown();
-
     const fileType = fileName.split(".").pop()?.toLowerCase();
     const allowedFileTypes = ["md", "mdx"];
 
     const hasValidFileName = !!fileType && allowedFileTypes.includes(fileType);
 
-    if (!fileName || !hasValidFileName || !contentMd || !currentFrontmatter)
+    if (!fileName || !hasValidFileName || !contentMd || !currentFrontmatter) {
+      alert("Arquivo invalido. Adicione um sufixo .md ou .mdx para continuar.");
       return;
+    }
 
     setLoader(true);
 
@@ -160,6 +161,9 @@ export default function EditorClient() {
           ),
         }),
       });
+
+      resetsPage();
+      router.push("/editor");
     } catch (error) {
       console.log("Erro ao salvar: ", error);
     } finally {
