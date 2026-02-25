@@ -18,15 +18,26 @@ export const convertFrontmetterToYAML = (frontmatter: Frontmatter) => {
 export const convertYAMLToObject = (yamlString: string) => {
   if (!yamlString) return {};
 
-  const cleaned = yamlString
-    .trim()
-    .replace(/^---\s*/g, "")
-    .replace(/\s*---$/g, "")
-    .trim();
+  try {
+    // Remove as linhas de delimitador --- do início e fim
+    const cleaned = yamlString
+      .split("\n")
+      .filter((line) => line.trim() !== "---")
+      .join("\n")
+      .trim();
 
-  const parsed = YAML.parse(cleaned);
+    // Se está vazio após limpeza, retorna objeto vazio
+    if (!cleaned) return {};
 
-  return typeof parsed === "object" && parsed !== null ? parsed : {};
+    // Parse do YAML
+    const parsed = YAML.parse(cleaned);
+
+    // Garante que o resultado é um objeto válido
+    return typeof parsed === "object" && parsed !== null ? parsed : {};
+  } catch (error) {
+    console.error("Erro ao parsear YAML:", error);
+    return {};
+  }
 };
 
 export const parseMarkdown = (md: string) => {
