@@ -51,6 +51,8 @@ export default function EditorClient() {
   const [currentFrontmatter, setCurrentFrontmatter] = useState<string>();
   const [newFrontmatter, setNewFrontmatter] = useState<string>();
 
+  const [pathHeader, setPathHeader] = useState<string[]>([]);
+
   const [loader, setLoader] = useState(false);
 
   const editor = useEditor({
@@ -90,9 +92,10 @@ export default function EditorClient() {
         }),
       });
 
-      setFileName(setPathName(path));
+      setPathHeader(splitPath(path).pathArray);
 
       if (!res.ok) {
+        setFileName(splitPath(path).fileName);
         const erroData = await res.json();
         throw new Error(
           erroData.error.message || "Erro ao carregar documentação.",
@@ -101,8 +104,7 @@ export default function EditorClient() {
 
       const data = await res.json();
 
-      const pathName = data.path.split("docs/")[1];
-      setFileName(pathName);
+      setFileName(splitPath(data.path).fileName);
 
       setParsedData(parseMarkdown(data.content));
       const { content, frontmatter } = parseMarkdown(data.content);
@@ -117,13 +119,21 @@ export default function EditorClient() {
     }
   }
 
-  function setPathName(path: string): string {
-    return path.split("docs/")[1];
-  }
-
   const handleSaveInformations = () => {
     if (!newFrontmatter) return;
     setCurrentFrontmatter(newFrontmatter);
+  };
+
+  const splitPath = (fullPath: string) => {
+    const fullPathArray = fullPath?.split("/");
+    const indexLast = fullPathArray?.length + 1;
+
+    const pathArray = fullPathArray?.slice(0, indexLast);
+    const fileName = pathArray?.pop() ?? "";
+
+    const onlyPath = pathArray.join("/");
+
+    return { pathArray, onlyPath, fileName };
   };
 
   async function handleSave() {
@@ -157,11 +167,17 @@ export default function EditorClient() {
     }
   }
 
-  function handleCancel() {
-    setFileName("");
-    editor?.commands.clearContent();
+  const handleCancel = () => {
+    resetsPage();
     router.push("/editor");
-  }
+  };
+
+  const resetsPage = () => {
+    setFileName("");
+    setPathHeader([]);
+    editor?.commands.clearContent();
+    setErrorPage(false);
+  };
 
   useEffect(() => {
     loadDocToEdit();
@@ -170,16 +186,41 @@ export default function EditorClient() {
   return (
     <main className="container mx-auto p-6 flex flex-col items-center gap-4 min-w-full h-screen">
       <div className="flex justify-between items-center w-full">
-        <div className="flex items-center gap-2 ">
+        <div className="flex items-center">
           <span className="text-nowrap font-semibold text-blue-500">
             agger-docs
           </span>
-          <span className="text-nowrap font-semibold text-gray-400">/</span>
-          <span className="text-nowrap font-semibold text-blue-500">docs</span>
-          <span className="text-nowrap font-semibold text-gray-400">/</span>
+
+          <span className="text-nowrap font-semibold text-gray-400 mx-2">
+            /
+          </span>
+
+          {!pathHeader.length && (
+            <>
+              <span className="text-nowrap font-semibold text-blue-500">
+                docs
+              </span>
+
+              <span className="text-nowrap font-semibold text-gray-400 mx-2">
+                /
+              </span>
+            </>
+          )}
+
+          {pathHeader.map((path, index) => (
+            <div key={index}>
+              <span className="text-nowrap font-semibold text-blue-500">
+                {path}
+              </span>
+
+              <span className="text-nowrap font-semibold text-gray-400 mx-2">
+                /
+              </span>
+            </div>
+          ))}
 
           <Input
-            className="min-h-6"
+            className="min-h-6 mr-2"
             placeholder="Caminho + nome do arquivo"
             id="name"
             value={fileName}
@@ -248,8 +289,8 @@ export default function EditorClient() {
         <ErrorPage
           message={path ?? ""}
           onGoToHome={() => {
+            resetsPage();
             router.push("/editor");
-            setErrorPage(false);
           }}
         />
       )}
