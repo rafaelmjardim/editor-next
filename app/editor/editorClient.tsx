@@ -13,7 +13,25 @@ import { MyEditor } from "../_components/myEditor";
 import { useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
 import { ImSpinner8 } from "react-icons/im";
-import matter from "gray-matter";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  DialogClose,
+  DialogDescription,
+  DialogTitle,
+} from "@radix-ui/react-dialog";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  buildMarkdown,
+  convertFrontmetterToYAML,
+  convertYAMLToObject,
+  parseMarkdown,
+} from "@/lib/utils";
 import { ErrorPage } from "../_components/errorPage";
 
 export default function EditorClient() {
@@ -24,11 +42,17 @@ export default function EditorClient() {
 
   const [errorPage, setErrorPage] = useState(false);
 
-  const [fileName, setFileName] = useState("");
   const [parsedData, setParsedData] = useState<{
     frontmatter: object;
     content: string;
   }>({ content: "", frontmatter: {} });
+
+  const [fileName, setFileName] = useState("");
+  const [currentFrontmatter, setCurrentFrontmatter] = useState<string>();
+  const [newFrontmatter, setNewFrontmatter] = useState<string>();
+
+  const [pathHeader, setPathHeader] = useState<string[]>([]);
+
   const [loader, setLoader] = useState(false);
 
   const editor = useEditor({
@@ -53,17 +77,8 @@ export default function EditorClient() {
     setFileName(event.target.value);
   };
 
-  const parseMarkdown = (md: string) => {
-    const { data, content } = matter(md);
-
-    return {
-      frontmatter: data,
-      content,
-    };
-  };
-
-  const buildMarkdown = (frontmatter: object, content: string) => {
-    return matter.stringify(content, frontmatter);
+  const changeFrontmatter = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setNewFrontmatter(event.target.value);
   };
 
   async function loadDocToEdit() {
@@ -77,9 +92,10 @@ export default function EditorClient() {
         }),
       });
 
-      setFileName(setPathName(path));
+      setPathHeader(splitPath(path).pathArray);
 
       if (!res.ok) {
+        setFileName(splitPath(path).fileName);
         const erroData = await res.json();
         throw new Error(
           erroData.error.message || "Erro ao carregar documentação.",
@@ -88,9 +104,12 @@ export default function EditorClient() {
 
       const data = await res.json();
 
-      setParsedData(parseMarkdown(data.content));
+      setFileName(splitPath(data.path).fileName);
 
-      const { content } = parseMarkdown(data.content);
+      setParsedData(parseMarkdown(data.content));
+      const { content, frontmatter } = parseMarkdown(data.content);
+
+      setCurrentFrontmatter(convertFrontmetterToYAML(frontmatter));
 
       editor?.commands.setContent(content, {
         contentType: "markdown",
@@ -100,19 +119,33 @@ export default function EditorClient() {
     }
   }
 
-  function setPathName(path: string): string {
-    return path.split("docs/")[1];
-  }
+  const handleSaveInformations = () => {
+    setCurrentFrontmatter(newFrontmatter);
+  };
+
+  const splitPath = (fullPath: string) => {
+    const fullPathArray = fullPath?.split("/");
+    const indexLast = fullPathArray?.length + 1;
+
+    const pathArray = fullPathArray?.slice(0, indexLast);
+    const fileName = pathArray?.pop() ?? "";
+
+    const onlyPath = pathArray.join("/");
+
+    return { pathArray, onlyPath, fileName };
+  };
 
   async function handleSave() {
     const contentMd = editor?.getMarkdown();
-
     const fileType = fileName.split(".").pop()?.toLowerCase();
     const allowedFileTypes = ["md", "mdx"];
 
     const hasValidFileName = !!fileType && allowedFileTypes.includes(fileType);
 
-    if (!fileName || !hasValidFileName || !contentMd) return;
+    if (!fileName || !hasValidFileName || !contentMd) {
+      alert("Arquivo invalido. Adicione um sufixo .md ou .mdx para continuar.");
+      return;
+    }
 
     setLoader(true);
 
@@ -121,9 +154,15 @@ export default function EditorClient() {
         method: "POST",
         body: JSON.stringify({
           path: `docs/${fileName}`,
-          content: buildMarkdown(parsedData.frontmatter, contentMd),
+          content: buildMarkdown(
+            contentMd,
+            currentFrontmatter ? convertYAMLToObject(currentFrontmatter) : {},
+          ),
         }),
       });
+
+      resetsPage();
+      router.push("/editor");
     } catch (error) {
       console.log("Erro ao salvar: ", error);
     } finally {
@@ -131,11 +170,19 @@ export default function EditorClient() {
     }
   }
 
-  function handleCancel() {
-    setFileName("");
-    editor?.commands.clearContent();
+  const handleCancel = () => {
+    resetsPage();
     router.push("/editor");
-  }
+  };
+
+  const resetsPage = () => {
+    setFileName("");
+    setPathHeader([]);
+    setNewFrontmatter("");
+    setCurrentFrontmatter("");
+    editor?.commands.clearContent();
+    setErrorPage(false);
+  };
 
   useEffect(() => {
     loadDocToEdit();
@@ -144,21 +191,85 @@ export default function EditorClient() {
   return (
     <main className="container mx-auto p-6 flex flex-col items-center gap-4 min-w-full h-screen">
       <div className="flex justify-between items-center w-full">
-        <div className="flex items-center gap-2 ">
+        <div className="flex items-center">
           <span className="text-nowrap font-semibold text-blue-500">
             agger-docs
           </span>
-          <span className="text-nowrap font-semibold text-gray-400">/</span>
-          <span className="text-nowrap font-semibold text-blue-500">docs</span>
-          <span className="text-nowrap font-semibold text-gray-400">/</span>
+
+          <span className="text-nowrap font-semibold text-gray-400 mx-2">
+            /
+          </span>
+
+          {!pathHeader.length && (
+            <>
+              <span className="text-nowrap font-semibold text-blue-500">
+                docs
+              </span>
+
+              <span className="text-nowrap font-semibold text-gray-400 mx-2">
+                /
+              </span>
+            </>
+          )}
+
+          {pathHeader.map((path, index) => (
+            <div key={index}>
+              <span className="text-nowrap font-semibold text-blue-500">
+                {path}
+              </span>
+
+              <span className="text-nowrap font-semibold text-gray-400 mx-2">
+                /
+              </span>
+            </div>
+          ))}
 
           <Input
-            className="min-h-6"
+            className="min-h-6 mr-2"
             placeholder="Caminho + nome do arquivo"
             id="name"
             value={fileName}
             onChange={handleChangeName}
           />
+
+          <Dialog modal>
+            <DialogTrigger asChild>
+              <Button
+                onClick={() => {
+                  setNewFrontmatter(currentFrontmatter);
+                }}
+              >
+                Informações
+              </Button>
+            </DialogTrigger>
+
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle className="font-semibold text-lg">
+                  Adicionar informações
+                </DialogTitle>
+                <DialogDescription className="text-sm text-gray-500">
+                  Importante: Mantenha o formato do texto
+                </DialogDescription>
+              </DialogHeader>
+              <Textarea
+                className="min-h-50"
+                value={newFrontmatter}
+                onChange={changeFrontmatter}
+              ></Textarea>
+
+              <DialogFooter>
+                <DialogClose asChild>
+                  <Button variant="outline">Cancelar</Button>
+                </DialogClose>
+                <DialogClose asChild>
+                  <Button type="submit" onClick={handleSaveInformations}>
+                    Salvar
+                  </Button>
+                </DialogClose>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </div>
 
         <div className="flex items-center justify-end gap-2 ">
@@ -183,8 +294,8 @@ export default function EditorClient() {
         <ErrorPage
           message={path ?? ""}
           onGoToHome={() => {
+            resetsPage();
             router.push("/editor");
-            setErrorPage(false);
           }}
         />
       )}
