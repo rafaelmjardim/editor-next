@@ -120,7 +120,6 @@ export default function EditorClient() {
   }
 
   const handleSaveInformations = () => {
-    if (!newFrontmatter) return;
     setCurrentFrontmatter(newFrontmatter);
   };
 
@@ -143,7 +142,7 @@ export default function EditorClient() {
 
     const hasValidFileName = !!fileType && allowedFileTypes.includes(fileType);
 
-    if (!fileName || !hasValidFileName || !contentMd || !currentFrontmatter) {
+    if (!fileName || !hasValidFileName || !contentMd) {
       alert("Arquivo invalido. Adicione um sufixo .md ou .mdx para continuar.");
       return;
     }
@@ -157,7 +156,7 @@ export default function EditorClient() {
           path: `docs/${fileName}`,
           content: buildMarkdown(
             contentMd,
-            convertYAMLToObject(currentFrontmatter),
+            currentFrontmatter ? convertYAMLToObject(currentFrontmatter) : {},
           ),
         }),
       });
@@ -179,6 +178,8 @@ export default function EditorClient() {
   const resetsPage = () => {
     setFileName("");
     setPathHeader([]);
+    setNewFrontmatter("");
+    setCurrentFrontmatter("");
     editor?.commands.clearContent();
     setErrorPage(false);
   };
